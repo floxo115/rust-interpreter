@@ -1,4 +1,6 @@
+mod ast;
 mod lexer;
+mod parser;
 mod tokens;
 use lexer::Lexer;
 use tokens::Token;

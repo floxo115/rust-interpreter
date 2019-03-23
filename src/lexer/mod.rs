@@ -29,7 +29,7 @@ impl<'a> Lexer<'a> {
     }
   }
 
-  pub fn next_token(&mut self) -> Token {
+  pub fn next_token(&mut self) -> Token<'a> {
     self.eat_ws();
     let token = match self.cur {
       Some('<') => match self.peek {
