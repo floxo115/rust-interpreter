@@ -3,7 +3,7 @@ use crate::tokens::Token;
 
 pub struct Parser<'a> {
   lexer: Lexer<'a>,
-  cur: Token<'a>,
+  cur: Token,
 }
 
 impl<'a> Parser<'a> {

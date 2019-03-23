@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(PartialEq, Debug)]
-pub enum Token<'a> {
+pub enum Token {
   PLUS,
   MINUS,
   ASTERISK,
@@ -19,8 +19,8 @@ pub enum Token<'a> {
   GT,
   GE,
 
-  IDENTIFIER { value: &'a str },
-  NUMBER { value: &'a str },
+  IDENTIFIER { value: String },
+  NUMBER { value: String },
 
   LET,
 
@@ -28,7 +28,7 @@ pub enum Token<'a> {
   UNDEFINED,
 }
 
-impl<'a> Token<'a> {
+impl Token {
   fn value(&self) -> String {
     match self {
       Token::PLUS => "+",
@@ -54,7 +54,7 @@ impl<'a> Token<'a> {
   }
 }
 
-impl<'a> Display for Token<'a> {
+impl<'a> Display for Token {
   fn fmt(&self, f: &mut Formatter) -> Result {
     write!(f, "Token<'{:?}', '{}'>", self, self.value())
   }

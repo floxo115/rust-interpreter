@@ -29,37 +29,44 @@ impl<'a> Lexer<'a> {
     }
   }
 
-  pub fn next_token(&mut self) -> Token<'a> {
-    self.eat_ws();
+  fn get_token_with_peek(&mut self) -> Option<Token> {
     let token = match self.cur {
       Some('<') => match self.peek {
         Some('=') => {
           self.next_char();
-          Token::SE
+          Some(Token::SE)
         }
-        _ => Token::ST,
+        _ => Some(Token::ST),
       },
       Some('>') => match self.peek {
         Some('=') => {
           self.next_char();
-          Token::GE
+          Some(Token::GE)
         }
-        _ => Token::GT,
+        _ => Some(Token::GT),
       },
       Some('=') => match self.peek {
         Some('=') => {
           self.next_char();
-          Token::EQ
+          Some(Token::EQ)
         }
-        _ => Token::ASSIGN,
+        _ => Some(Token::ASSIGN),
       },
       Some('!') => match self.peek {
         Some('=') => {
           self.next_char();
-          Token::NEQ
+          Some(Token::NEQ)
         }
-        _ => Token::NOT,
+        _ => Some(Token::NOT),
       },
+      _ => None,
+    };
+
+    token
+  }
+
+  fn get_token_without_peek(&mut self) -> Option<Token> {
+    let token = match self.cur {
       Some('+') => Token::PLUS,
       Some('-') => Token::MINUS,
       Some('/') => Token::DIVIDE,
@@ -68,8 +75,55 @@ impl<'a> Lexer<'a> {
       Some('(') => Token::LPAREN,
       Some(')') => Token::RPAREN,
       None => Token::EOF,
-      _ => Token::UNDEFINED,
+      _ => return None,
     };
+
+    Some(token)
+  }
+
+  fn get_token_from_value(&mut self) -> Option<Token> {
+    fn get_identifier_value(lexer: &mut Lexer) -> String {
+      let mut value = String::new();
+      loop {
+        if let Some(cur) = lexer.cur {
+          if !cur.is_alphabetic() {
+            break value;
+          }
+
+          value.push(cur);
+          lexer.next_char();
+        }
+      }
+    }
+
+    let token = match self.cur {
+      Some(first_char) if first_char.is_alphabetic() => {
+        let value = get_identifier_value(self);
+        Token::IDENTIFIER { value: value }
+      }
+      Some(first_char) if first_char.is_numeric() => {
+        //TODO implement number lexing
+        unimplemented!();
+      }
+      _ => return None,
+    };
+
+    Some(token)
+  }
+
+  pub fn next_token(&mut self) -> Token {
+    self.eat_ws();
+
+    let token;
+    if let Some(created_token) = self.get_token_with_peek() {
+      token = created_token;
+    } else if let Some(created_token) = self.get_token_without_peek() {
+      token = created_token;
+    } else if let Some(created_token) = self.get_token_from_value() {
+      token = created_token;
+    } else {
+      token = Token::UNDEFINED;
+    }
 
     self.next_char();
     token
@@ -101,8 +155,15 @@ mod test {
     let token = lexer.next_token();
     assert_eq!(token, Token::EOF);
 
-    let mut lexer = Lexer::new("+ !=   >= -    /\t*\n += (   ) ");
+    let mut lexer = Lexer::new("hallo + !=   >= -    /\t*\n += (   ) ");
     let mut token = lexer.next_token();
+    assert_eq!(
+      token,
+      Token::IDENTIFIER {
+        value: "hallo".to_string()
+      }
+    );
+    token = lexer.next_token();
     assert_eq!(token, Token::PLUS);
     token = lexer.next_token();
     assert_eq!(token, Token::NEQ);
