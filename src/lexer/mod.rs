@@ -126,7 +126,11 @@ impl<'a> Lexer<'a> {
       Some(first_char) if first_char.is_alphabetic() => {
         let value = get_identifier_value(self);
         // TODO keyword check
-        Token::IDENTIFIER { value }
+        if let Some(token) = Token::get_keyword(&value) {
+          token
+        } else {
+          Token::IDENTIFIER { value }
+        }
       }
       Some(first_char) if first_char.is_numeric() => {
         let value = get_number_value(self);
@@ -182,8 +186,10 @@ mod test {
     let token = lexer.next_token();
     assert_eq!(token, Token::EOF);
 
-    let mut lexer = Lexer::new("30.5 15 hallo + != !   >= -    /\t*\n += (   ) ");
+    let mut lexer = Lexer::new("  let 30.5 15 hallo + != !   >= -    /\t*\n += (   ) ");
     let mut token = lexer.next_token();
+    assert_eq!(Token::LET, token);
+    token = lexer.next_token();
     assert_eq!(
       token,
       Token::NUMBER {

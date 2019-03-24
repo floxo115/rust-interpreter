@@ -52,6 +52,13 @@ impl Token {
     }
     .to_string()
   }
+
+  pub fn get_keyword(value: &str) -> Option<Token> {
+    match value {
+      "let" => Some(Token::LET),
+      _ => None,
+    }
+  }
 }
 
 impl<'a> Display for Token {
