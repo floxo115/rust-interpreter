@@ -125,6 +125,7 @@ impl<'a> Lexer<'a> {
     let token = match self.cur {
       Some(first_char) if first_char.is_alphabetic() => {
         let value = get_identifier_value(self);
+        // TODO keyword check
         Token::IDENTIFIER { value }
       }
       Some(first_char) if first_char.is_numeric() => {
