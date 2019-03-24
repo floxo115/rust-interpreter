@@ -96,14 +96,40 @@ impl<'a> Lexer<'a> {
       }
     }
 
+    fn get_number_value(lexer: &mut Lexer) -> String {
+      fn get_numerics(lexer: &mut Lexer, mut value: String) -> String {
+        loop {
+          if let Some(cur) = lexer.cur {
+            if !cur.is_numeric() {
+              break value;
+            }
+
+            value.push(cur);
+            lexer.next_char();
+          }
+        }
+      }
+
+      let mut value = String::new();
+      // before decimal point
+      value = get_numerics(lexer, value);
+      // if there is a decimal point
+      if let Some('.') = lexer.cur {
+        value.push('.');
+        lexer.next_char();
+        value = get_numerics(lexer, value);
+      }
+      value
+    }
+
     let token = match self.cur {
       Some(first_char) if first_char.is_alphabetic() => {
         let value = get_identifier_value(self);
-        Token::IDENTIFIER { value: value }
+        Token::IDENTIFIER { value }
       }
       Some(first_char) if first_char.is_numeric() => {
-        //TODO implement number lexing
-        unimplemented!();
+        let value = get_number_value(self);
+        Token::NUMBER { value }
       }
       _ => return None,
     };
@@ -155,8 +181,22 @@ mod test {
     let token = lexer.next_token();
     assert_eq!(token, Token::EOF);
 
-    let mut lexer = Lexer::new("hallo + !=   >= -    /\t*\n += (   ) ");
+    let mut lexer = Lexer::new("30.5 15 hallo + != !   >= -    /\t*\n += (   ) ");
     let mut token = lexer.next_token();
+    assert_eq!(
+      token,
+      Token::NUMBER {
+        value: "30.5".to_string()
+      }
+    );
+    token = lexer.next_token();
+    assert_eq!(
+      token,
+      Token::NUMBER {
+        value: "15".to_string()
+      }
+    );
+    token = lexer.next_token();
     assert_eq!(
       token,
       Token::IDENTIFIER {
@@ -167,6 +207,8 @@ mod test {
     assert_eq!(token, Token::PLUS);
     token = lexer.next_token();
     assert_eq!(token, Token::NEQ);
+    token = lexer.next_token();
+    assert_eq!(token, Token::NOT);
     token = lexer.next_token();
     assert_eq!(token, Token::GE);
     token = lexer.next_token();
