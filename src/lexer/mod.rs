@@ -84,16 +84,16 @@ impl<'a> Lexer<'a> {
   fn get_token_from_value(&mut self) -> Option<Token> {
     fn get_identifier_value(lexer: &mut Lexer) -> String {
       let mut value = String::new();
-      loop {
-        if let Some(cur) = lexer.cur {
-          if !cur.is_alphabetic() {
-            break value;
-          }
-
-          value.push(cur);
-          lexer.next_char();
+      while let Some(cur) = lexer.cur {
+        if !cur.is_alphabetic() {
+          break;
         }
+
+        value.push(cur);
+        lexer.next_char();
       }
+
+      value
     }
 
     fn get_number_value(lexer: &mut Lexer) -> String {
@@ -185,7 +185,7 @@ mod test {
     let token = lexer.next_token();
     assert_eq!(token, Token::EOF);
 
-    let mut lexer = Lexer::new("  let 30.5 15 hallo + != !   >= -    /\t*\n += (   ) 60");
+    let mut lexer = Lexer::new("  let 30.5 15 hallo + != !   >= -    /\t*\n += (   ) 60 helo");
     let mut token = lexer.next_token();
     assert_eq!(Token::LET, token);
     token = lexer.next_token();
@@ -236,6 +236,13 @@ mod test {
       token,
       Token::NUMBER {
         value: "60".to_string()
+      }
+    );
+    token = lexer.next_token();
+    assert_eq!(
+      token,
+      Token::IDENTIFIER {
+        value: "helo".to_string()
       }
     );
     token = lexer.next_token();
