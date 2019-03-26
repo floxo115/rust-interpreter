@@ -29,7 +29,7 @@ pub enum Token {
 }
 
 impl Token {
-  fn value(&self) -> String {
+  pub fn value(&self) -> String {
     match self {
       Token::PLUS => "+",
       Token::MINUS => "-",
