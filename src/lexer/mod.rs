@@ -147,15 +147,16 @@ impl<'a> Lexer<'a> {
     let token;
     if let Some(created_token) = self.get_token_with_peek() {
       token = created_token;
+      self.next_char();
     } else if let Some(created_token) = self.get_token_without_peek() {
       token = created_token;
+      self.next_char();
     } else if let Some(created_token) = self.get_token_from_value() {
       token = created_token;
     } else {
       token = Token::UNDEFINED;
     }
 
-    self.next_char();
     token
   }
 }

@@ -1,5 +1,4 @@
 use crate::ast;
-use crate::ast::Node;
 use crate::lexer::Lexer;
 use crate::tokens::Token;
 
@@ -36,9 +35,32 @@ impl<'a> Parser<'a> {
 
   fn parse_node(&mut self) -> Box<dyn ast::Node> {
     match &self.cur {
-      Token::NUMBER { value } => self.parse_number(),
+      Token::NUMBER { .. } => self.parse_number(),
+      Token::PLUS => self.parse_operator(),
       _ => unimplemented!(),
     }
+  }
+
+  fn parse_operator(&mut self) -> Box<dyn ast::Node> {
+    self.next_token();
+    if self.cur != Token::LPAREN {
+      panic!("expected LPAREN");
+    }
+    self.next_token();
+    let mut operator = ast::MultipleOperator::new_addition_operator();
+
+    while self.cur != Token::RPAREN {
+      if self.cur == Token::EOF {
+        panic!("expected RPAREN but got EOF")
+      }
+      let node = self.parse_node();
+      println!("{}", self.cur);
+      operator.nodes.push(node);
+    }
+
+    self.next_token();
+
+    Box::new(operator)
   }
 
   fn parse_number(&mut self) -> Box<ast::Number> {
@@ -51,6 +73,7 @@ impl<'a> Parser<'a> {
 #[cfg(test)]
 mod test {
   use super::*;
+  use crate::ast::Node as _;
   #[test]
   fn next_token() {
     let mut parser = Parser::new("+ -  * /");
@@ -73,5 +96,14 @@ mod test {
     let prog = parser.parse_program();
     let number = ast::Number { value: 50.1 };
     assert_eq!(prog.value(), number.value());
+
+    let mut parser = Parser::new("+(50 40 20 )");
+
+    let prog = parser.parse_program();
+    assert_eq!(prog.value(), "110");
+
+    let mut parser = Parser::new("+( 10 20 30.5)");
+    let prog = parser.parse_program();
+    assert_eq!(prog.value(), "60.5");
   }
 }
