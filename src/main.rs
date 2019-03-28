@@ -2,15 +2,22 @@ mod ast;
 mod lexer;
 mod parser;
 mod tokens;
-use lexer::Lexer;
+use crate::ast::node::Node;
+use crate::parser::Parser;
+use std::io::BufRead;
+use std::io::Read;
 use tokens::Token;
+
+use std::io;
 fn main() {
-    let mut lexer = Lexer::new("a = 50 + 20");
-    loop {
-        let token = lexer.next_token();
-        println!("{}", token);
-        if let Token::EOF = token {
-            break;
-        }
-    }
+    let stdin = io::stdin();
+    let mut input = String::new();
+    stdin.lock().read_to_string(&mut input).unwrap();
+
+    let mut parser = Parser::new(&input);
+    let prog = parser.parse_program();
+
+    let val = prog.value();
+
+    println!("{}", val);
 }
